@@ -47,7 +47,7 @@ type VerifyResult = {
         <input [value]="licenseKey()" (input)="updateLicenseKey($event)" placeholder="BlinkID License key" />
       </label>
       <label>API Base
-        <input [value]="apiBase()" (input)="apiBase.set($event.target.value)" placeholder="http://localhost:5079" />
+        <input [value]="apiBase()" (input)="apiBase.set($event.target.value)" placeholder="http://localhost:5000" />
       </label>
       <div class="row">
         <button class="btn" (click)="saveSettings()">Save</button>
@@ -233,7 +233,7 @@ export class AppComponent implements OnDestroy {
   updateLicenseKey(event: Event) {
     this.licenseKey.set((event.target as HTMLInputElement).value);
   }
-  apiBase = signal<string>((environment as any).apiBase || 'http://localhost:5079');
+  apiBase = signal<string>((environment as any).apiBase || 'http://localhost:5000');
   licenseKey = signal<string>((environment as any).licenseKey ?? ''); 
   openSettings = false; settingsSaved = false;
 
@@ -426,7 +426,7 @@ export class AppComponent implements OnDestroy {
     this.http.post<VerifyResult>(`${this.apiBase()}/api/verify`, form, {
       reportProgress: true, observe: 'events'
     }).subscribe({
-      next: ev => {
+      next: (ev:any) => {
         if (ev.type === HttpEventType.UploadProgress && ev.total) {
           this.progress.set(Math.round(100 * ev.loaded / ev.total));
         } else if (ev.type === HttpEventType.Response) {

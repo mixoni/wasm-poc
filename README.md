@@ -18,7 +18,7 @@ cd server/VerificationApi
 dotnet restore
 dotnet run
 ```
-> Note the port printed in the console (e.g. `http://localhost:5079`).
+> Note the port printed in the console (e.g. `http://localhost:5000`).
 
 ### 2) Frontend
 ```bash
@@ -50,7 +50,7 @@ Enjoy!
 
 Get a demo token (dev only):
 ```bash
-curl "http://localhost:5079/api/token?user=Miljan"
+curl "http://localhost:5000/api/token?user=demo_user"
 ```
 Copy `access_token` to `localStorage` (the app does this via **Auth** panel).  
 Protected endpoints: `/api/verify`, `/api/upload-url`.
@@ -67,10 +67,10 @@ From repo root:
 ```bash
 docker compose up --build
 ```
-- API: http://localhost:5079
+- API: http://localhost:5000
 - Web: http://localhost:4200
 
-> On first run, Node image builds the Angular dev server. API is exposed on 5079.
+> On first run, Node image builds the Angular dev server. API is exposed on 5000.
 
 ## 📐 Diagram
 
@@ -80,7 +80,7 @@ See `docs/architecture.md` for a **Mermaid** diagram of the flow (SDK flag, API,
 
 ## 🧰 Hangfire & Retention
 
-- Hangfire dashboard: `http://localhost:5079/jobs`
+- Hangfire dashboard: `http://localhost:5000/jobs`
 - Recurring job: `retention-cleanup` (runs every minute)
 - In-memory AuditLog (`/api/audit?take=50`) — protected; fetch after getting token.
 

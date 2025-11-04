@@ -6,7 +6,7 @@ services:
       - DEMO_JWT_KEY=DemoJwtKey_ChangeMe1234567890
       - DEMO_UPLOAD_SECRET=UploadSecret_ChangeMe
     ports:
-      - "5079:8080"
+      - "5000:8080"
     networks: [ pocnet ]
 
   web:

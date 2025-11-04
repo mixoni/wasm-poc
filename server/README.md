@@ -10,5 +10,5 @@ dotnet restore
 dotnet run
 ```
 
-- Health: `GET http://localhost:5079/api/health` (port may vary; check console)
-- Verify: `POST http://localhost:5079/api/verify` (multipart/form-data, field: `image`)
+- Health: `GET http://localhost:5000/api/health` (port may vary; check console)
+- Verify: `POST http://localhost:5000/api/verify` (multipart/form-data, field: `image`)
