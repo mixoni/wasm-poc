@@ -1,0 +1,8 @@
+/* Global styles kept minimal; component has its own styles.
+   Ensure tap-friendly areas on mobile and safe-area paddings */
+:root { color-scheme: dark; }
+html, body { height: 100%; }
+body { margin: 0; }
+@supports (padding: max(0px)) {
+  body { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+}

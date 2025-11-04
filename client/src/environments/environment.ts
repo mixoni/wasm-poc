@@ -1,0 +1,5 @@
+export const environment = {
+  production: false,
+  apiBase: 'http://localhost:5000',
+  licenseKey: 'sRwCAAlsb2NhbGhvc3QGbGV5SkRjbVZoZEdWa1QyNGlPakUzTmpJeU1EYzVOakl5T1RVc0lrTnlaV0YwWldSR2IzSWlPaUppTnpSaU1USmlaQzFsWlRZeUxUUTNZVFV0WW1abE55MHlNMlUwWWpNd00yVTRNRFVpZlE9PWCmlqHQnwe6lAeurdvRkOuQasANbypsBjFtUVTs0s1wtYjpONI8hITbyHMeXRbTH+MTalnGjGZA30kUACUiXJISoSPPM+tZ7y7fHsPn+eUK4n6MB7ufc9CHuDBiPfs=',
+};

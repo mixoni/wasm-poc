@@ -1,0 +1,24 @@
+services:
+  api:
+    build:
+      context: ./server/VerificationApi
+    environment:
+      - DEMO_JWT_KEY=DemoJwtKey_ChangeMe1234567890
+      - DEMO_UPLOAD_SECRET=UploadSecret_ChangeMe
+    ports:
+      - "5079:8080"
+    networks: [ pocnet ]
+
+  web:
+    build:
+      context: ./client
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - "4200:4200"
+    depends_on: [ api ]
+    networks: [ pocnet ]
+
+networks:
+  pocnet:
+    driver: bridge
