@@ -93,7 +93,9 @@ type VerifyResult = {
               <div class="guide" [class.good]="guideGood" [class.capturing]="autoCapturing">
                 <div class="corners"><span></span><span></span><span></span><span></span></div>
                 <div class="hint">
-                  {{ autoCapturing ? 'Stabilizing…' : (step()==='front' ? 'Align FRONT side inside the frame' : 'Align BACK side inside the frame') }}
+                  <span *ngIf="!guideGood && !autoCapturing">{{ step()==='front' ? 'Align FRONT side inside the frame' : 'Align BACK side inside the frame' }}</span>
+                  <span *ngIf="guideGood && !autoCapturing">Hold steady…</span>
+                  <span *ngIf="autoCapturing">Capturing…</span>
                 </div>
               </div>
             </div>
@@ -226,6 +228,24 @@ type VerifyResult = {
 
   .footer { text-align: center; padding: 16px; color: var(--muted); }
   .hidden { display:none; }
+  /* Zeleno kad je “good” */
+  .overlay .guide.good {
+    border-color: #22c55e; /* zeleno */
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.35), 0 0 12px 2px rgba(34,197,94,0.6);
+  }
+  .overlay .guide.good .corners span { border-color: rgba(34,197,94,0.9); }
+
+  /* U trenutku auto-snimka malo jači “pulse” */
+  @keyframes guidePulse {
+    0%   { box-shadow: 0 0 0 9999px rgba(0,0,0,0.35), 0 0 10px 2px rgba(34,197,94,0.6); }
+    50%  { box-shadow: 0 0 0 9999px rgba(0,0,0,0.35), 0 0 20px 6px rgba(34,197,94,0.8); }
+    100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.35), 0 0 10px 2px rgba(34,197,94,0.6); }
+  }
+  .overlay .guide.capturing {
+    border-style: solid;
+    animation: guidePulse 0.6s ease-in-out 2;
+  }
+
   `]
 })
 export class AppComponent implements OnDestroy {
@@ -261,6 +281,9 @@ export class AppComponent implements OnDestroy {
   cameraActive = false;
   private mediaStream: MediaStream | null = null;
   guideGood = false; autoMode = true; autoCapturing = false; private rafId: number | null = null;
+
+  private stableFrames = 0;
+  private readonly STABLE_THRESHOLD = 10; // ~10 uzastopnih “dobrih” frame-ova
 
   constructor(private http: HttpClient, private blink: BlinkIdSdkService) {}
 
@@ -369,23 +392,52 @@ export class AppComponent implements OnDestroy {
     const tick = () => {
       this.rafId = requestAnimationFrame(tick);
       if (!video.videoWidth || !video.videoHeight) return;
+    
       const W = 480, H = Math.round((video.videoHeight / video.videoWidth) * W);
       canvas.width = W; canvas.height = H;
       ctx.drawImage(video, 0, 0, W, H);
       const img = ctx.getImageData(0, 0, W, H).data;
+    
+      // 1) “Oštrina” (varijansa luminanse)
       let sum=0, sumSq=0;
-      for (let i=0;i<img.length;i+=4) { const y = 0.2126*img[i] + 0.7152*img[i+1] + 0.0722*img[i+2]; sum += y; sumSq += y*y; }
-      const n = img.length/4, mean = sum/n, variance = (sumSq/n) - (mean*mean);
+      for (let i=0;i<img.length;i+=4) {
+        const y = 0.2126*img[i] + 0.7152*img[i+1] + 0.0722*img[i+2];
+        sum += y; sumSq += y*y;
+      }
+      const n = img.length/4;
+      const mean = sum/n;
+      const variance = (sumSq/n) - (mean*mean);
+    
+      // 2) “Popunjenost” vodiča
       const guideWidthFrac = Math.min(video.clientWidth * 0.85, 520) / video.clientWidth;
       const fillOk = guideWidthFrac >= 0.6;
+    
+      // Prag za oštrinu – podešavaj po uređaju
       const sharpOk = variance > 1800;
-      this.guideGood = sharpOk && fillOk;
-
+    
+      // 3) Stabilizacija: tražimo X uzastopnih dobrih frame-ova
+      if (sharpOk && fillOk) {
+        this.stableFrames = Math.min(this.stableFrames + 1, this.STABLE_THRESHOLD + 5);
+      } else {
+        this.stableFrames = Math.max(this.stableFrames - 1, 0);
+      }
+    
+      this.guideGood = this.stableFrames >= this.STABLE_THRESHOLD;
+    
+      // 4) Auto-capture kad smo “good” i trenutno ne hvatamo
       if (this.guideGood && !this.autoCapturing) {
-        this.autoCapturing = true;
-        setTimeout(() => { if (this.guideGood) this.captureFrame(video); this.autoCapturing = false; }, 300);
+        this.autoCapturing = true; // promeni stil (pulse)
+        setTimeout(() => {
+          // ako je još uvek stabilno – snimi
+          if (this.guideGood) this.captureFrame(video);
+          this.autoCapturing = false;
+          // nakon snimka resetuj stabilnost da ne snima odmah drugi
+          this.stableFrames = 0;
+          this.guideGood = false;
+        }, 350);
       }
     };
+    
     this.rafId = requestAnimationFrame(tick);
   }
 
